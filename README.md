@@ -7,7 +7,7 @@ This repo contains the source code for the blog post *The 37 Implementation Deta
 
 If you like this repo, consider checking out CleanRL (https://github.com/vwxyzjn/cleanrl), the RL library that we used to build this repo.
 
-## Get started whit vscode editor (edited by JHJP)
+## Get started with vscode editor (edited by JHJP)
 Prerequisites:
 * Python 3.8+
 * [Poetry](https://python-poetry.org)
