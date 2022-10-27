@@ -7,6 +7,36 @@ This repo contains the source code for the blog post *The 37 Implementation Deta
 
 If you like this repo, consider checking out CleanRL (https://github.com/vwxyzjn/cleanrl), the RL library that we used to build this repo.
 
+## Get started whit vscode editor (edited by JHJP)
+Prerequisites:
+* Python 3.8+
+* [Poetry](https://python-poetry.org)
+
+This is the default setting for teh vscode. After installing poetry, enter the following commands in order.
+
+Change the virtualenv environment to inside the project folder:
+```
+poetry config virtualenvs.in-project true
+```
+
+Set the virtualenv folder name:
+```
+poetry config virtualenvs.path "/venv"
+```
+
+Install dependencies:
+```
+poetry install
+```
+
+If you do this up to this point, dependencies will be installed in the .venv folder.
+
+Open PPO folder with vscode editor. Enter the following code inside the command prompt:
+```
+code .
+```
+
+You can now use this repository with vscoe eidtor. Enjoy!
 
 ## Get started
 
