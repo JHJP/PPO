@@ -42,7 +42,7 @@ def parse_args():
     # Algorithm specific arguments
     parser.add_argument("--num-envs", type=int, default=4,
         help="the number of parallel game environments")
-    parser.add_argument("--num-steps", type=int, default=128,#num steps variable controls exactly how much data we want to collect. collect number of 4*128(512) datas before the policy training. 
+    parser.add_argument("--num-steps", type=int, default=128,
         help="the number of steps to run in each environment per policy rollout")
     parser.add_argument("--anneal-lr", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="Toggle learning rate annealing for policy and value networks")
@@ -71,7 +71,7 @@ def parse_args():
     parser.add_argument("--target-kl", type=float, default=None,
         help="the target KL divergence threshold")
     args = parser.parse_args()
-    args.batch_size = int(args.num_envs * args.num_steps) # 4*128 = 512 (batch size)
+    args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     # fmt: on
     return args
@@ -91,10 +91,10 @@ def make_env(gym_id, seed, idx, capture_video, run_name):
 
     return thunk
 
-# why use orthogonal?
+
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-    torch.nn.init.orthogonal_(layer.weight, std) # PPO uses orthogonal initialization on the layer's weight 
-    torch.nn.init.constant_(layer.bias, bias_const) # PPO uses constant iniialization on the layer's bias
+    torch.nn.init.orthogonal_(layer.weight, std)
+    torch.nn.init.constant_(layer.bias, bias_const)
     return layer
 
 
@@ -120,10 +120,10 @@ class Agent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
-        logits = self.actor(x) # unnormalized action probabilities
-        probs = Categorical(logits=logits) # categorical is a softmax operation to get the action probability
+        logits = self.actor(x)
+        probs = Categorical(logits=logits)
         if action is None:
-            action = probs.sample() # collect action data because we are in the rollout phase
+            action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
 
@@ -202,63 +202,54 @@ if __name__ == "__main__":
     # env.close()
 
 
-    # # make vector env instead of gym env directly for the PPO 
-    # def make_env(gym_id):
-    #     def thunk():
-    #         env = gym.make(gym_id)
-    #         env = gym.wrappers.RecordEpisodeStatistics(env)
-    #         return env
-    #     return thunk
+    # make vector env instead of gym env directly for the PPO 
+    def make_env(gym_id):
+        def thunk():
+            env = gym.make(gym_id)
+            env = gym.wrappers.RecordEpisodeStatistics(env)
+            return env
+        return thunk
     
-    # envs = gym.vector.SyncVectorEnv([make_env(args.gym_id)])
-    # obserbation = envs.reset()
-    # for _ in range(200):
-    #     action = envs.action_space.sample()
-    #     observation, reward, done, info = envs.step(action)
-    #     for item in info:
-    #         if "episode" in item.keys():
-    #             print(f"episodic return {item['episode']['r']}")
+    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id)])
+    obserbation = envs.reset()
+    for _ in range(200):
+        action = envs.action_space.sample()
+        observation, reward, done, info = envs.step(action)
+        for item in info:
+            if "episode" in item.keys():
+                print(f"episodic return {item['episode']['r']}")
+        # if done:
+            # print(f"episodic return: {info['final_info'][0]['episode']['r']}")
+            # NOTE: there is no observation = env.reset() anymore. vector env will automatically reset.
+    # envs.close()
 
     # -------------------------------------------------------------------------------------
     # -------------------------------------- env construction END -----------------------------
     # -------------------------------------------------------------------------------------
 
-    # env setup (Create vector environment for the PPO)
-    envs = gym.vector.SyncVectorEnv(
-        [make_env(args.gym_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]
-    )
-    assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
+    # # env setup
+    # envs = gym.vector.SyncVectorEnv(
+    #     [make_env(args.gym_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]
+    # )
+    # assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    print("envs.single_observation_space.shape", envs.single_observation_space.shape) # there are four features
-    print("envs.single_action_space.n", envs.single_action_space.n) # there are number of two discrete actions (left, right)
+    # agent = Agent(envs).to(device)
+    # optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
 
-    agent = Agent(envs).to(device)
-    optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5) # epsilion prevent learning rate to become infinity
-    print(agent)
+    # # ALGO Logic: Storage setup
+    # obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape).to(device)
+    # actions = torch.zeros((args.num_steps, args.num_envs) + envs.single_action_space.shape).to(device)
+    # logprobs = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    # rewards = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    # dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    # values = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
-    # ALGO Logic: Storage setup
-    obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape).to(device)
-    actions = torch.zeros((args.num_steps, args.num_envs) + envs.single_action_space.shape).to(device)
-    logprobs = torch.zeros((args.num_steps, args.num_envs)).to(device)
-    rewards = torch.zeros((args.num_steps, args.num_envs)).to(device)
-    dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
-    values = torch.zeros((args.num_steps, args.num_envs)).to(device)
-
-    # TRY NOT TO MODIFY: start the game
-    global_step = 0 # to track num_envs
-    start_time = time.time()
-    next_obs = torch.Tensor(envs.reset()).to(device) # store the initial observation
-    next_done = torch.zeros(args.num_envs).to(device) # store the initial termination condition to be false
-    num_updates = args.total_timesteps // args.batch_size #25000/512 = 48. number of 48 updates
-    print(num_updates)
-    print("next_obs.shape", next_obs.shape)
-    print("agent.get_value(next_obs)", agent.get_value(next_obs))
-    print("agent.get_value(next_obs).shape", agent.get_value(next_obs).shape)
-    print()
-    print("agent.get_action_and_value(next_obs)", agent.get_action_and_value(next_obs))
-
-    
-    
+    # # TRY NOT TO MODIFY: start the game
+    # global_step = 0
+    # start_time = time.time()
+    # next_obs = torch.Tensor(envs.reset()).to(device)
+    # next_done = torch.zeros(args.num_envs).to(device)
+    # num_updates = args.total_timesteps // args.batch_size
 
     # for update in range(1, num_updates + 1):
     #     # Annealing the rate if instructed to do so.

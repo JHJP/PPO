@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.15.0-52-generic-x86_64-with-glibc2.31",
+    "python": "3.9.5",
+    "heartbeatAt": "2022-10-31T04:19:06.799853",
+    "startedAt": "2022-10-31T04:19:04.881234",
+    "docker": null,
+    "cpu_count": 4,
+    "cuda": null,
+    "args": [
+        "--track"
+    ],
+    "state": "running",
+    "program": "/home/papag/sourceCode/RLalgorithms/PPO/ppo.py",
+    "codePath": "ppo.py",
+    "git": {
+        "remote": "https://github.com/JHJP/PPO.git",
+        "commit": "6081fad8a2dad040a8369b9625d97111aba744e7"
+    },
+    "email": "jhjp37.io@gmail.com",
+    "root": "/home/papag/sourceCode/RLalgorithms/PPO",
+    "host": "papag",
+    "username": "papag",
+    "executable": "/home/papag/sourceCode/RLalgorithms/PPO/.venv/bin/python"
+}
