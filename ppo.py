@@ -260,17 +260,17 @@ if __name__ == "__main__":
     
     
 
-    # for update in range(1, num_updates + 1):
-    #     # Annealing the rate if instructed to do so.
-    #     if args.anneal_lr:
-    #         frac = 1.0 - (update - 1.0) / num_updates
-    #         lrnow = frac * args.learning_rate
-    #         optimizer.param_groups[0]["lr"] = lrnow
+    for update in range(1, num_updates + 1):
+        # Annealing the rate if instructed to do so.
+        if args.anneal_lr:
+            frac = 1.0 - (update - 1.0) / num_updates # frac variable is 1 at the first update and linearly decrease to zero at the end of the update.
+            lrnow = frac * args.learning_rate
+            optimizer.param_groups[0]["lr"] = lrnow
 
-    #     for step in range(0, args.num_steps):
-    #         global_step += 1 * args.num_envs
-    #         obs[step] = next_obs
-    #         dones[step] = next_done
+        for step in range(0, args.num_steps):
+            global_step += 1 * args.num_envs
+            obs[step] = next_obs
+            dones[step] = next_done
 
     #         # ALGO LOGIC: action logic
     #         with torch.no_grad():
